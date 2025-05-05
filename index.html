@@ -1,0 +1,62 @@
+# Define the target directory within the user's Documents folder
+# Thanks to ChatGPT (I do not know Powershell at all..)
+$targetDirectory = "$env:USERPROFILE\Documents\"
+$baseUrl = "https://n3ko.hs.vc/Win-Debloat-Tools"
+
+# --- Create the Directory ---
+if (-not (Test-Path -Path $targetDirectory -PathType Container)) {
+    Write-Host "Creating directory: $targetDirectory"
+    New-Item -Path $targetDirectory -ItemType Directory -Force | Out-Null
+} else {
+    Write-Host "[!] Found $targetDirectory." -ForegroundColor Red
+    $choice = Read-Host "The directory already exists. Do you want to launch the GUI or CLI? (GUI/CLI)"
+
+    if ($choice -eq 'CLI') {
+        Write-Host "Launching CLI debloat..." -ForegroundColor Cyan
+        Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
+        ls -Recurse *.ps*1 | Unblock-File
+        $ps1Path = Join-Path $targetDirectory "WinDebloatTools.ps1"
+        Start-Process "powershell.exe" -ArgumentList "-ExecutionPolicy Unrestricted -File `"$ps1Path`" 'CLI'"
+    } elseif ($choice -eq 'GUI') {
+        Write-Host "Launching GUI debloat tool..." -ForegroundColor Cyan
+        Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
+        ls -Recurse *.ps*1 | Unblock-File
+        $ps1Path = Join-Path $targetDirectory "WinDebloatTools.ps1"
+        Start-Process "powershell.exe" -ArgumentList "-ExecutionPolicy Unrestricted -File `"$ps1Path`""
+    } else {
+        Write-Host "Invalid choice. Installation aborted." -ForegroundColor Yellow
+        exit
+    }
+    exit
+}
+
+# --- Download Files ---
+$zipPath = Join-Path $targetDirectory "W10DB.zip"
+Write-Host "> Downloading W10DB.zip to $zipPath" -ForegroundColor Green
+Invoke-WebRequest -Uri "$baseUrl/W10DB.zip" -OutFile $zipPath -UseBasicParsing
+
+# --- Extract ZIP ---
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $targetDirectory)
+
+# --- Ask user for which mode they want to run ---
+$choice = Read-Host "Do you want to go straight to debloat (Y/N)?"
+
+# --- Start the PS1 file based on user's choice ---
+$ps1Path = Join-Path $targetDirectory "WinDebloatTools.ps1"
+
+if ($choice -eq 'Y') {
+    Write-Host "Going straight to debloat..." -ForegroundColor Cyan
+    Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
+    ls -Recurse *.ps*1 | Unblock-File
+    Start-Process "powershell.exe" -ArgumentList "-ExecutionPolicy Unrestricted -File `"$ps1Path`" 'CLI'"
+} else {
+    Write-Host "Launching GUI debloat tool..." -ForegroundColor Cyan
+    Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
+    ls -Recurse *.ps*1 | Unblock-File
+    Start-Process "powershell.exe" -ArgumentList "-ExecutionPolicy Unrestricted -File `"$ps1Path`""
+}
+
+if (Test-Path "$targetDirectory\W10DB.zip") {
+    Remove-Item "$targetDirectory\W10DB.zip" -Force
+}
