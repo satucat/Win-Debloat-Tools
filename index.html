@@ -1,5 +1,4 @@
 # Define the target directory within the user's Documents folder
-# Thanks to ChatGPT (I do not know Powershell at all..)
 $targetDirectory = Join-Path $env:USERPROFILE "Documents"
 $w10dbFolder = Join-Path $targetDirectory "W10DB"
 $zipPath = Join-Path $targetDirectory "W10DB.zip"
@@ -35,13 +34,31 @@ Invoke-WebRequest -Uri "$baseUrl/W10DB.zip" -OutFile $zipPath -UseBasicParsing
 
 # --- Extract ZIP ---
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-[System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $w10dbFolder)
+[System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $targetDirectory)
+
+# --- Rename extracted folder (if exists) ---
+$extractedFolder = Join-Path $targetDirectory "W10DB"
+$copyFolder = Join-Path $targetDirectory "W10DB-copy"
+
+# Check if the folder inside the zip is named something else
+if (Test-Path $extractedFolder) {
+    Write-Host "Renaming folder to W10DB-copy..." -ForegroundColor Green
+    Rename-Item -Path $extractedFolder -NewName "W10DB-copy"
+}
+
+# --- Remove old folder and rename the new one to W10DB ---
+if (Test-Path $copyFolder) {
+    Write-Host "Renaming W10DB-copy to W10DB..." -ForegroundColor Green
+    Rename-Item -Path $copyFolder -NewName "W10DB"
+} else {
+    Write-Host "[!] Error: W10DB-copy not found!" -ForegroundColor Red
+}
 
 # --- Ask user for which mode they want to run ---
 $choice = Read-Host "Do you want to go straight to debloat (Y/N)?"
 
 # --- Start the PS1 file based on user's choice ---
-$ps1Path = Join-Path $targetDirectory "W10DB\WinDebloatTools.ps1"
+$ps1Path = Join-Path $w10dbFolder "WinDebloatTools.ps1"
 
 if ($choice -eq 'Y') {
     Write-Host "Going straight to debloat..." -ForegroundColor Cyan
