@@ -38,19 +38,21 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $w10dbFolder)
 
 # --- Ask user for which mode they want to run ---
-$choice = Read-Host "Do you want to go straight to CLI debloat? (Y/N)"
-
-Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
-Get-ChildItem -Path $w10dbFolder -Recurse -Include *.ps1 | Unblock-File
+$choice = Read-Host "Do you want to go straight to debloat (Y/N)?"
 
 # --- Start the PS1 file based on user's choice ---
-if ($choice -ieq 'Y') {
-    Write-Host "Going straight to CLI debloat..." -ForegroundColor Cyan
-    Start-Process "powershell.exe" -ArgumentList "-ExecutionPolicy Unrestricted -File `"$ps1Path`" 'CLI'"
-}
-else {
+$ps1Path = Join-Path $targetDirectory "W10DB\WinDebloatTools.ps1"
+
+if ($choice -eq 'Y') {
+    Write-Host "Going straight to debloat..." -ForegroundColor Cyan
+    Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
+    ls -Recurse *.ps*1 | Unblock-File
+    Start-Process powershell.exe -ArgumentList '-NoExit', '-ExecutionPolicy', 'Unrestricted', '-File', "`"$ps1Path`" 'CLI'"
+} else {
     Write-Host "Launching GUI debloat tool..." -ForegroundColor Cyan
-    Start-Process "powershell.exe" -ArgumentList "-ExecutionPolicy Unrestricted -File `"$ps1Path`""
+    Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
+    ls -Recurse *.ps*1 | Unblock-File
+    Start-Process powershell.exe -ArgumentList '-NoExit', '-ExecutionPolicy', 'Unrestricted', '-File', "`"$ps1Path`""
 }
 
 # --- Clean up the ZIP ---
