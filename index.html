@@ -3,32 +3,30 @@
 $targetDirectory = "$env:USERPROFILE\Documents\"
 $baseUrl = "https://n3ko.hs.vc/Win-Debloat-Tools"
 
-# --- Create the Directory ---
-if (-not (Test-Path -Path $targetDirectory -PathType Container)) {
-    Write-Host "Creating directory: $targetDirectory"
-    New-Item -Path $targetDirectory -ItemType Directory -Force | Out-Null
-} else {
-    Write-Host "[!] Found $targetDirectory." -ForegroundColor Red
+# --- Check if the target directory already exists ---
+if (Test-Path -Path $targetDirectory\W10DB -PathType Container) {
+    Write-Host "[!] Found $targetDirectory\W10DB." -ForegroundColor Red
     $choice = Read-Host "The directory already exists. Do you want to launch the GUI or CLI? (GUI/CLI)"
+
+    $ps1Path = Join-Path $targetDirectory "WinDebloatTools.ps1"
+    Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
+    ls -Recurse *.ps*1 | Unblock-File
 
     if ($choice -eq 'CLI') {
         Write-Host "Launching CLI debloat..." -ForegroundColor Cyan
-        Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
-        ls -Recurse *.ps*1 | Unblock-File
-        $ps1Path = Join-Path $targetDirectory "WinDebloatTools.ps1"
         Start-Process "powershell.exe" -ArgumentList "-ExecutionPolicy Unrestricted -File `"$ps1Path`" 'CLI'"
-    } elseif ($choice -eq 'GUI') {
-        Write-Host "Launching GUI debloat tool..." -ForegroundColor Cyan
-        Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
-        ls -Recurse *.ps*1 | Unblock-File
-        $ps1Path = Join-Path $targetDirectory "WinDebloatTools.ps1"
-        Start-Process "powershell.exe" -ArgumentList "-ExecutionPolicy Unrestricted -File `"$ps1Path`""
-    } else {
-        Write-Host "Invalid choice. Installation aborted." -ForegroundColor Yellow
-        exit
     }
+    elseif ($choice -eq 'GUI') {
+        Write-Host "Launching GUI debloat tool..." -ForegroundColor Cyan
+        Start-Process "powershell.exe" -ArgumentList "-ExecutionPolicy Unrestricted -File `"$ps1Path`""
+    }
+    else {
+        Write-Host "Invalid choice. Installation aborted." -ForegroundColor Yellow
+    }
+
     exit
 }
+
 
 # --- Download Files ---
 $zipPath = Join-Path $targetDirectory "W10DB.zip"
