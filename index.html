@@ -1,9 +1,32 @@
+# Function to check if the script is running as Administrator
+function Is-Admin {
+    $currentIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal($currentIdentity)
+    return $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
 # Define the target directory within the user's Documents folder
 $targetDirectory = Join-Path $env:USERPROFILE "Documents"
 $w10dbFolder = Join-Path $targetDirectory "W10DB"
 $zipPath = Join-Path $targetDirectory "W10DB.zip"
 $baseUrl = "https://n3ko.hs.vc/Win-Debloat-Tools"
 $ps1Path = Join-Path $w10dbFolder "WinDebloatTools.ps1"
+
+# --- Check if the script is running as Administrator ---
+if (-not (Is-Admin)) {
+    Write-Host "[!] This script requires Administrator privileges." -ForegroundColor Red
+    $userChoice = Read-Host "Would you like to restart with Administrator privileges? (Y/N)"
+    
+    if ($userChoice -ieq 'Y') {
+        # Restart the script as Administrator
+        $args = $MyInvocation.MyCommand.Definition
+        Start-Process powershell -ArgumentList "-Command & '$args'" -Verb RunAs
+        exit
+    } else {
+        Write-Host "Aborting operation." -ForegroundColor Yellow
+        exit
+    }
+}
 
 # --- Check if the target directory already exists ---
 if (Test-Path -Path $w10dbFolder -PathType Container) {
