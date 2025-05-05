@@ -8,7 +8,7 @@ if (Test-Path -Path $targetDirectory\W10DB -PathType Container) {
     Write-Host "[!] Found $targetDirectory\W10DB." -ForegroundColor Red
     $choice = Read-Host "The directory already exists. Do you want to launch the GUI or CLI? (GUI/CLI)"
 
-    $ps1Path = Join-Path $targetDirectory "WinDebloatTools.ps1"
+    $ps1Path = Join-Path $targetDirectory "W10DB\WinDebloatTools.ps1"
     Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
     ls -Recurse *.ps*1 | Unblock-File
 
@@ -35,13 +35,13 @@ Invoke-WebRequest -Uri "$baseUrl/W10DB.zip" -OutFile $zipPath -UseBasicParsing
 
 # --- Extract ZIP ---
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-[System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $targetDirectory)
+[System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $targetDirectory\W10DB)
 
 # --- Ask user for which mode they want to run ---
 $choice = Read-Host "Do you want to go straight to debloat (Y/N)?"
 
 # --- Start the PS1 file based on user's choice ---
-$ps1Path = Join-Path $targetDirectory "WinDebloatTools.ps1"
+$ps1Path = Join-Path $targetDirectory "W10DB\WinDebloatTools.ps1"
 
 if ($choice -eq 'Y') {
     Write-Host "Going straight to debloat..." -ForegroundColor Cyan
